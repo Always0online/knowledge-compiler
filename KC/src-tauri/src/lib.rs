@@ -140,7 +140,12 @@ fn build_tray(app: &mut tauri::App) -> tauri::Result<()> {
     ],
   )?;
 
-  TrayIconBuilder::with_id("main")
+  let tray_icon = app.default_window_icon().cloned();
+  let mut tray_builder = TrayIconBuilder::with_id("main");
+  if let Some(icon) = tray_icon {
+    tray_builder = tray_builder.icon(icon);
+  }
+  tray_builder
     .menu(&menu)
     .tooltip("KC 后台")
     .on_menu_event(|app, event| match event.id.as_ref() {
@@ -247,3 +252,4 @@ pub fn run() {
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
+
