@@ -1,0 +1,19 @@
+# 运行时状态与密钥
+.state/
+.env
+知识库/
+knowledge_library/
+*.local
+secrets.*
+auth.json
+
+# Node
+node_modules/
+
+# KC build artifacts
+kc-core.exe
+dist/
+src-tauri/binaries/*.exe
+
+# GitHub 发布产物（用 gh release 上传，不入库）
+release/

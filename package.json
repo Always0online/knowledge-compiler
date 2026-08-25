@@ -1,0 +1,22 @@
+{
+  "name": "kc-pilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scan": "node src/cli.mjs scan",
+    "watch": "node src/cli.mjs watch",
+    "process": "node src/cli.mjs process",
+    "watch:json": "node src/cli.mjs watch --json"
+  },
+  "dependencies": {
+    "chokidar": "^5.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/cli": "^2.11.4",
+    "@yao-pkg/pkg": "^6.22.0",
+    "esbuild": "^0.28.2",
+    "postject": "^1.0.0-alpha.6"
+  }
+}
