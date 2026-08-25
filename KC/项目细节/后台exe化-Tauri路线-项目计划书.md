@@ -1,8 +1,8 @@
-﻿# KC 后台 EXE 化 · Tauri 路线项目计划书
+# KC 后台 EXE 化 · Tauri 路线项目计划书
 
 > 版本：0.1（B 路线专项计划）
 > 日期：2026-08-25
-> 对象：`D:\codex_project\安装新工具\knowledge-compiler\kc-repo\KC`
+> 对象：仓库内 KC 目录（`kc-repo/KC`）
 > 结论：KC 走 **B 路线（Tauri 2 托盘壳）**，核心先保留 Node（B1 sidecar），纯 Rust 原生核心（B2）作为后续可选项。本计划书只确定方案与阶段，不直接改代码。
 
 ---
@@ -203,4 +203,4 @@ stderr 走纯文本，壳读后写入日志。
 1. B1 默认保留 Node 核心，是否接受 sidecar 带来的体积？（否则改 B2 原生）
 2. 托盘之外是否要一个极简设置窗口（编辑 LLM key、扫描间隔）？首期计划为纯托盘。
 3. 开机自启默认关闭，是否需要安装后默认开启？
-4. 知识库目录沿用当前 `.env` 指定的 `D:\obsidian_word\knowledge-base\knowledge_library`？
+4. 知识库目录沿用当前 `.env` 的 `KC_KNOWLEDGE_DIR`（可自定义）？
