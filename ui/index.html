@@ -2,24 +2,146 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <title>KC 设置</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Knowledge Compiler</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 16px; }
-    label { display: block; margin: 10px 0 4px; }
-    input, button { font-size: 14px; }
-    input { width: 100%; box-sizing: border-box; }
+    :root {
+      --bg: #eef1f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --field-bg: #f8fafc;
+      --primary: #6366f1;
+      --primary-strong: #4f46e5;
+      --primary-soft: rgba(99, 102, 241, 0.14);
+      --shadow: 0 24px 60px rgba(31, 41, 55, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1218;
+        --card: #1b2029;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --border: #2d3440;
+        --field-bg: #141821;
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, var(--primary-soft), transparent 60%),
+        radial-gradient(1000px 500px at 110% 110%, rgba(168, 85, 247, 0.12), transparent 55%),
+        var(--bg);
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 28px 28px 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 42px; height: 42px; border-radius: 12px;
+      display: grid; place-items: center;
+      font-size: 22px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+    }
+    h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+    .subtitle { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
+    .form { margin-top: 24px; }
+    .field { margin-bottom: 16px; }
+    .field-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      font: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--field-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    input::placeholder { color: var(--muted); opacity: .8; }
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: var(--card);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .check { display: flex; align-items: center; gap: 9px; cursor: pointer; font-size: 14px; user-select: none; }
+    .check input { width: 16px; height: 16px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+    .actions { display: flex; gap: 10px; margin-top: 26px; }
+    button {
+      flex: 1;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease, transform .05s ease, box-shadow .15s ease;
+    }
+    button:active { transform: translateY(1px); }
+    #save {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+    #save:hover { filter: brightness(1.05); }
+    #cancel { color: var(--text); background: transparent; border-color: var(--border); }
+    #cancel:hover { background: var(--field-bg); }
   </style>
 </head>
 <body>
-  <h2>KC 设置</h2>
-  <label>LLM API Key</label>
-  <input id="apiKey" type="password" placeholder="sk-..." />
-  <label>扫描间隔（毫秒）</label>
-  <input id="scanIntervalMs" type="number" />
-  <label>知识库目录</label>
-  <input id="knowledgeDir" type="text" />
-  <label><input id="autostart" type="checkbox" /> 开机自启</label>
-  <p><button id="save">保存</button> <button id="cancel">取消</button></p>
+  <main class="card">
+    <header class="brand">
+      <div class="logo">🧠</div>
+      <div>
+        <h1>Knowledge Compiler</h1>
+        <p class="subtitle">知识萃取设置</p>
+      </div>
+    </header>
+
+    <div class="form">
+      <div class="field">
+        <label class="field-label" for="apiKey">LLM API Key</label>
+        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="scanIntervalMs">扫描间隔（毫秒）</label>
+        <input id="scanIntervalMs" type="number" placeholder="60000" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="knowledgeDir">知识库目录</label>
+        <input id="knowledgeDir" type="text" placeholder="例如 C:\path\to\knowledge_library" />
+      </div>
+      <label class="check"><input id="autostart" type="checkbox" /> 开机自启</label>
+    </div>
+
+    <div class="actions">
+      <button id="save" type="button">保存</button>
+      <button id="cancel" type="button">取消</button>
+    </div>
+  </main>
+
   <script type="module">
     const { invoke } = window.__TAURI__.core;
     (async () => {
