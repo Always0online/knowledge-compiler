@@ -4,13 +4,17 @@ use std::sync::Mutex;
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
 struct SidecarState {
   child: Mutex<Option<CommandChild>>,
+}
+
+struct AppPaths {
+  root: PathBuf,
 }
 
 #[derive(Serialize)]
@@ -24,38 +28,32 @@ struct SettingsOut {
   autostart: bool,
 }
 
-fn kc_root() -> PathBuf {
+fn resolve_root(app: &tauri::App) -> PathBuf {
   if let Ok(v) = std::env::var("KC_ROOT") {
     return PathBuf::from(v);
   }
-  #[cfg(debug_assertions)]
-  {
-    return PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
+  if let Ok(dir) = app.path().app_data_dir() {
+    return dir;
   }
-  #[cfg(not(debug_assertions))]
-  {
-    if let Ok(exe) = std::env::current_exe() {
-      if let Some(dir) = exe.parent() {
-        return dir.to_path_buf();
-      }
-    }
-    return std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+  if let Ok(dir) = app.path().resource_dir() {
+    return dir;
   }
+  std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
 }
 
-fn settings_file() -> PathBuf {
-  kc_root().join(".state").join("settings.json")
+fn settings_file(root: &PathBuf) -> PathBuf {
+  root.join(".state").join("settings.json")
 }
 
-fn read_settings() -> serde_json::Value {
-  match std::fs::read_to_string(settings_file()) {
+fn read_settings(root: &PathBuf) -> serde_json::Value {
+  match std::fs::read_to_string(settings_file(root)) {
     Ok(text) => serde_json::from_str(&text).unwrap_or(serde_json::json!({})),
     Err(_) => serde_json::json!({}),
   }
 }
 
-fn write_settings(v: serde_json::Value) -> Result<(), String> {
-  let path = settings_file();
+fn write_settings(root: &PathBuf, v: serde_json::Value) -> Result<(), String> {
+  let path = settings_file(root);
   if let Some(dir) = path.parent() {
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
   }
@@ -64,8 +62,8 @@ fn write_settings(v: serde_json::Value) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn get_settings(app: AppHandle) -> SettingsOut {
-  let v = read_settings();
+fn get_settings(app: AppHandle, state: State<'_, AppPaths>) -> SettingsOut {
+  let v = read_settings(&state.root);
   SettingsOut {
     api_key: v
       .get("EXTRACT_LLM_API_KEY")
@@ -86,7 +84,7 @@ fn get_settings(app: AppHandle) -> SettingsOut {
 }
 
 #[tauri::command]
-fn save_settings(app: AppHandle, settings: serde_json::Value) -> Result<(), String> {
+fn save_settings(app: AppHandle, state: State<'_, AppPaths>, settings: serde_json::Value) -> Result<(), String> {
   let auto = settings.get("autostart").and_then(|x| x.as_bool()).unwrap_or(false);
   if auto {
     app.autolaunch().enable().map_err(|e| e.to_string())?;
@@ -95,7 +93,7 @@ fn save_settings(app: AppHandle, settings: serde_json::Value) -> Result<(), Stri
   }
   let mut obj = settings.as_object().cloned().unwrap_or_default();
   obj.remove("autostart");
-  write_settings(serde_json::Value::Object(obj))
+  write_settings(&state.root, serde_json::Value::Object(obj))
 }
 
 fn send_cmd(app: &AppHandle, cmd: &str) {
@@ -155,12 +153,13 @@ fn build_tray(app: &mut tauri::App) -> tauri::Result<()> {
         }
       }
       "open_kb" => {
-        let root = kc_root();
-        let p = std::env::var("KC_KNOWLEDGE_DIR").unwrap_or_else(|_| root.join("knowledge_library").to_string_lossy().to_string());
+        let root = app.state::<AppPaths>().root.clone();
+        let p = std::env::var("KC_KNOWLEDGE_DIR")
+          .unwrap_or_else(|_| root.join("knowledge_library").to_string_lossy().to_string());
         open_path(&p);
       }
       "open_log" => {
-        let root = kc_root();
+        let root = app.state::<AppPaths>().root.clone();
         open_path(&root.join(".state").join("logs").to_string_lossy().to_string());
       }
       "quit" => {
@@ -200,11 +199,16 @@ pub fn run() {
     ))
     .invoke_handler(tauri::generate_handler![get_settings, save_settings])
     .setup(|app| {
+      let root = resolve_root(app);
+      std::fs::create_dir_all(root.join(".state")).ok();
+      std::fs::create_dir_all(root.join("knowledge_library")).ok();
+      app.manage(AppPaths { root: root.clone() });
+
       let sidecar = app
         .shell()
         .sidecar("kc-core")?
         .args(["watch", "--json"])
-        .env("KC_ROOT", kc_root().to_string_lossy().to_string());
+        .env("KC_ROOT", root.to_string_lossy().to_string());
       let (mut rx, child) = sidecar.spawn()?;
       app.manage(SidecarState {
         child: Mutex::new(Some(child)),
@@ -243,4 +247,3 @@ pub fn run() {
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
-
