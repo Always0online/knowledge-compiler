@@ -1,0 +1,11 @@
+{
+  "name": "kc-pilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scan": "node src/index.mjs scan",
+    "watch": "node src/index.mjs watch",
+    "process": "node src/index.mjs process"
+  }
+}
