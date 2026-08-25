@@ -4,8 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "scan": "node src/index.mjs scan",
-    "watch": "node src/index.mjs watch",
-    "process": "node src/index.mjs process"
+    "scan": "node src/cli.mjs scan",
+    "watch": "node src/cli.mjs watch",
+    "process": "node src/cli.mjs process",
+    "watch:json": "node src/cli.mjs watch --json"
+  },
+  "dependencies": {
+    "chokidar": "^5.0.0"
   }
 }
