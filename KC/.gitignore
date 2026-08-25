@@ -2,6 +2,7 @@
 .state/
 .env
 知识库/
+knowledge_library/
 *.local
 secrets.*
 auth.json
