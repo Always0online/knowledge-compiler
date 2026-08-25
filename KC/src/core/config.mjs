@@ -3,8 +3,18 @@ import path from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-export const kcRoot = path.resolve(here, '..', '..');
+function resolveKcRoot() {
+  if (process.env.KC_ROOT) return path.resolve(process.env.KC_ROOT);
+  try {
+    const metaUrl = import.meta.url;
+    if (metaUrl) return path.resolve(path.dirname(fileURLToPath(metaUrl)), '..', '..');
+  } catch {
+    // 打包成 CJS 后 import.meta 不可用，继续走回退
+  }
+  return process.cwd();
+}
+
+export const kcRoot = resolveKcRoot();
 
 function loadEnvFile(filePath) {
   if (!existsSync(filePath)) return;
